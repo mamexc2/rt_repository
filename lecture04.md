@@ -24,9 +24,11 @@
 
 ![image06](img/lecture04/img006.png)
 
+![image07](img/lecture04/img007.png)
+
 4.EC2⇒RDS 接続確認
 
-![image07](img/lecture04/img007.png)
+![image08](img/lecture04/img008.png)
 
 ### 学んだこと、感じたこと
 
