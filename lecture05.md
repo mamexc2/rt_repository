@@ -34,15 +34,9 @@
 
 ![image01](img/lecture05/img011.png)
 
-5.RDSセキュリティグループ
+5.構成図
 
 ![image01](img/lecture05/img012.png)
-
-![image01](img/lecture05/img013.png)
-
-6.構成図
-
-![image01](img/lecture05/img014.png)
 
 
 ### 感想
