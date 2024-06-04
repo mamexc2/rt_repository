@@ -10,33 +10,37 @@
 
 ![image01](img/lecture05/img003.png)
 
-3.ロードバランサー経由で接続確認
+- pumaをサービスとして起動
 
 ![image01](img/lecture05/img004.png)
 
-![image01](img/lecture05/img005.png)
+3.ロードバランサー経由で接続確認
 
-- ロードバランサー ターゲットグループ
+![image01](img/lecture05/img005.png)
 
 ![image01](img/lecture05/img006.png)
 
-- ロードバランサー セキュリティグループ
+- ロードバランサー ターゲットグループ
 
 ![image01](img/lecture05/img007.png)
 
+- ロードバランサー セキュリティグループ
+
 ![image01](img/lecture05/img008.png)
 
-4.保存先をS3に変更
-
 ![image01](img/lecture05/img009.png)
+
+4.保存先をS3に変更
 
 ![image01](img/lecture05/img010.png)
 
 ![image01](img/lecture05/img011.png)
 
+![image01](img/lecture05/img012.png)
+
 5.構成図
 
-![image01](img/lecture05/img012.png)
+![image01](img/lecture05/img013.png)
 
 
 ### 感想
