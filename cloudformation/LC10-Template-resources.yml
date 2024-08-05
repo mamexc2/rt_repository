@@ -1,0 +1,280 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Raisetech Lecture10 Resources Create
+
+# ------------------------------------------------------------#
+# Metadata
+# ------------------------------------------------------------#
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Naming setting for Tags
+        Parameters:
+          - System
+
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------#
+Parameters:
+  System:
+    Type: String
+    Default: "LC10"
+
+# EC2
+  EC2KeyName:
+    Default: "mame-ed-key"
+    Type: String
+
+  EC2InstanceType:
+    Default: "t2.micro"
+    Type: String
+
+  AMI:
+    Default: "ami-034bc4e4fcccfe844"
+    Type: String
+
+# RDS
+  DBInstanceName:
+    Type: String
+    Default: "rds"
+  MySQLMajorVersion:
+    Type: String
+    Default: "8.0"
+  MySQLMinorVersion:
+    Type: String
+    Default: "37"
+  DBInstanceClass:
+    Type: String
+    Default: "db.t3.micro" 
+  DBInstanceStorageSize:
+    Type: String
+    Default: "20"
+  DBInstanceStorageType:
+    Type: String
+    Default: "gp2"
+  DBName:
+    Type: String
+    Default: "db"
+  DBMasterUserName:
+    Type: String
+    Default: "mysqladmin"
+    NoEcho: true
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+  DBPassword: 
+    Default: "dbpassword"
+    NoEcho: true
+    Type: String
+    MinLength: 8
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]*"
+  MultiAZ: 
+    Default: "false"
+    Type: String
+    AllowedValues: [ "true", "false" ]
+
+# IAM
+  PrincipalService:
+    Type: String
+    Default: 'ec2.amazonaws.com'
+
+  S3Fullaccess:
+    Type: String
+    Default: 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+  
+
+Resources:
+# ------------------------------------------------------------#
+# EC2 Instance
+# ------------------------------------------------------------#
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AMI
+      InstanceType: !Ref EC2InstanceType
+      KeyName: !Ref EC2KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: !ImportValue PubSubAID
+          GroupSet:
+            - !ImportValue EC2SecurityGroupID
+      IamInstanceProfile: !Ref S3AccessInstanceProfile
+
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
+          sudo yum install https://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
+          sudo yum update -y
+          sudo amazon-linux-extras install nginx1
+          sudo systemctl start nginx
+
+      Tags:     
+        - Key: Name
+          Value: !Sub ${System}-ec2
+
+# ------------------------------------------------------------#
+#  DBInstance MySQL
+# ------------------------------------------------------------#
+  DBInstance: 
+    Type: "AWS::RDS::DBInstance"
+    Properties: 
+    #DBインスタンス識別子
+      DBInstanceIdentifier: !Sub "${System}-${DBInstanceName}"
+      Engine: MySQL
+    #DBエンジンバージョン
+      EngineVersion: !Sub "${MySQLMajorVersion}.${MySQLMinorVersion}"
+    #DBインスタンスクラス
+      DBInstanceClass: !Ref DBInstanceClass
+    #DBストレージ割り当て
+      AllocatedStorage: !Ref DBInstanceStorageSize
+    #ストレージタイプ
+      StorageType: !Ref DBInstanceStorageType
+    #DB名
+      DBName: !Ref DBName
+    #マスターユーザー名
+      MasterUsername: !Ref DBMasterUserName
+    #マスターパスワード
+      MasterUserPassword: !Ref DBPassword
+    #DBサブネットグループ
+      DBSubnetGroupName: !Ref DBSubnetGroup
+    #パブリックアクセス
+      PubliclyAccessible: false
+    #マルチAZ配置
+      MultiAZ: !Ref MultiAZ
+    #マイナーバージョン自動アップグレード
+      AutoMinorVersionUpgrade: false
+    #DBクラスターのパラメータグループ名
+      DBParameterGroupName: !Ref DBParameterGroup
+    #セキュリティグループ
+      VPCSecurityGroups:
+        - !ImportValue RDSSecurityGroupID
+    #バックアップ保持期間(0を指定して無効化)
+      BackupRetentionPeriod: 0
+    #削除保護
+    DeletionPolicy: "Delete"
+
+# ------------------------------------------------------------#
+#  DBParameterGroup
+# ------------------------------------------------------------#
+  DBParameterGroup:
+    Type: "AWS::RDS::DBParameterGroup"
+    Properties:
+      Family: !Sub "MySQL${MySQLMajorVersion}"
+      Description: MySQL Parameter Group"
+
+# ------------------------------------------------------------#
+#  DBSubnetGroup
+# ------------------------------------------------------------#
+  DBSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupName: !Sub "${System}-${DBInstanceName}-subnet"
+      DBSubnetGroupDescription: "-"
+      SubnetIds: 
+        - !ImportValue PriSubAID
+        - !ImportValue PriSubCID
+
+# ------------------------------------------------------------#
+# ALB
+# ------------------------------------------------------------#
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: "application"
+      Scheme: "internet-facing"
+      Name: !Sub ${System}-alb
+      Tags:
+        - Key: Name
+          Value: !Sub ${System}-alb
+      IpAddressType: ipv4
+      Subnets: 
+        - !ImportValue PubSubAID
+        - !ImportValue PubSubCID
+      SecurityGroups: 
+        - !ImportValue ELBSecurityGroupID
+
+  ListenerHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+  
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${System}-tg
+      Tags:
+        - Key: Name
+          Value: !Sub ${System}-tg
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: '200'
+      VpcId: !ImportValue VPCID
+      TargetType: instance
+      Targets:
+        - Id: !Sub ${EC2Instance}
+
+# ------------------------------------------------------------#
+# S3 Bucket
+# ------------------------------------------------------------#
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: lc10-bucket
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      #暗号化
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+
+# ------------------------------------------------------------#
+# IAM Role
+# ------------------------------------------------------------#
+  S3AccessRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName : !Sub ${System}-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Ref PrincipalService
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Ref S3Fullaccess
+
+  # Instanse Profile
+  S3AccessInstanceProfile:
+      Type: AWS::IAM::InstanceProfile
+      Properties:
+        InstanceProfileName: !Sub ${System}-instanceprofile
+        Roles:
+        - !Ref S3AccessRole
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#
+Outputs:
+# EC2
+  EC2Instance:
+    Value: !Ref EC2Instance
+    Export:
+      Name: InstanceID

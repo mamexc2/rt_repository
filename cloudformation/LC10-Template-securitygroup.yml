@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Raisetech Lecture10 SecurityGroup Create
+
+# ------------------------------------------------------------#
+# Metadata
+# ------------------------------------------------------------#
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Naming setting for Tags
+        Parameters:
+          - System
+
+# ------------------------------------------------------------#
+# Input Parameters
+# ------------------------------------------------------------#
+Parameters:
+  System:
+    Type: String
+    Default: "LC10"
+
+Resources:
+# ------------------------------------------------------------#
+# Security Group
+# ------------------------------------------------------------#
+# ELB Security Group
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "ELB connect security group"
+      GroupName: !Sub ${System}-elb-sg
+      VpcId: !ImportValue VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${System}-elb-sg
+
+# EC2 Security Group
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "EC2 connect security group"
+      GroupName: !Sub ${System}-ec2-sg
+      VpcId: !ImportValue VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ELBSecurityGroup 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 42.148.37.4/32
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${System}-ec2-sg
+
+# RDS Security Group
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "RDS connect security group"
+      GroupName: !Sub ${System}-rds-sg
+      VpcId: !ImportValue VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3386
+          ToPort: 3386
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${System}-rds-sg
+
+# ------------------------------------------------------------#
+# Output Parameters
+# ------------------------------------------------------------#
+Outputs:
+
+  ELBSecurityGroup:
+    Value: !Ref ELBSecurityGroup
+    Export:
+      Name: ELBSecurityGroupID
+
+  EC2SecurityGroup:
+    Value: !Ref EC2SecurityGroup
+    Export:
+      Name: EC2SecurityGroupID
+
+  RDSSecurityGroup:
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: RDSSecurityGroupID
+      
