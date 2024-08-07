@@ -3,7 +3,7 @@
 ### CloudFormationにて、現在までの環境構築を自動化する
 
 1. VPC、サブネットの構築<br>
-[LC10-Template-vpc.yml](/cloudformationLC10-Template-vpc.yml)<br>
+[LC10-Template-vpc.yml](/cloudformation/LC10-Template-vpc.yml)<br>
 
 2. セキュリティグループ<br>
 [LC10-Template-securitygroup.yml](/cloudformation/LC10-Template-securitygroup.yml)<br>
