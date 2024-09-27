@@ -51,3 +51,8 @@ end
 describe command('yarn -v') do
   its(:stdout) { should match /1\.22\.22/ }
 end
+
+# curlで接続してステータスコードが200と一致することを確認する
+describe command('curl http://localhost -o /dev/null -w "%{http_code}\n" -s') do
+    its(:stdout) { should match /200/ }
+end
