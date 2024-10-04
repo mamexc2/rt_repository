@@ -3,10 +3,10 @@
 ### Serverspecを使用してテストを実行する
 
 1. ServerSpecインストール～設定<br>
-$gem install serverspec <br>
-$mkdir serverspec <br>
-$serverspec-init <br>
 ```
+gem install serverspec
+mkdir serverspec
+serverspec-init
 Select OS type:
 
   1) UN*X
