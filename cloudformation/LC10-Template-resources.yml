@@ -31,7 +31,7 @@ Parameters:
 
   AMI:
     Default: "ami-034bc4e4fcccfe844"
-    Type: String
+    Type: AWS::EC2::Instance
 
 # RDS
   DBInstanceName:
