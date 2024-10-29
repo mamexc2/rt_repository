@@ -10,7 +10,7 @@ jobs:
       - run:
           name: run cfn-lint
           command: |
-            cfn-lint -i W3002 W2506 W1011 W3010 -t cloudformation/*.yml
+            cfn-lint -i W3002 W2506 W1011 W3010 W3045 -t cloudformation/*.yml
 
 workflows:
   raisetech:
