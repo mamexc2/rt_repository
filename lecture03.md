@@ -2,38 +2,38 @@
 
 1.APサーバー
 
-![image01](img/img001.png)
+![image01](img/lecture03/img001.png)
 
 - 停止
 
-![image02](img/img002.png)
+![image02](img/lecture03/img002.png)
 
-![image03](img/img003.png)
+![image03](img/lecture03/img003.png)
 
 - 起動
 
-![image04](img/img004.png)
+![image04](img/lecture03/img004.png)
 
-![image05](img/img005.png)
+![image05](img/lecture03/img005.png)
 
 
 2.DBサーバー
 
 - MySQL
 
-![image06](img/img006.png)
+![image06](img/lecture03/img006.png)
 
 - 停止
 
-![image07](img/img007.png)
+![image07](img/lecture03/img007.png)
 
-![image08](img/img008.png)
+![image08](img/lecture03/img008.png)
 
 - 起動
 
-![image09](img/img009.png)
+![image09](img/lecture03/img009.png)
 
-![image10](img/img010.png)
+![image10](img/lecture03/img010.png)
 
 
 ### 学んだこと、感じたこと
